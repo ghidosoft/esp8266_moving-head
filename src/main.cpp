@@ -2,6 +2,8 @@
 #include <ESP8266WiFi.h>
 #include <Servo.h>
 
+#include "ArtNet.hpp"
+
 #define PAN_PIN D1
 #define TILT_PIN D2
 #define R_PIN D5
@@ -27,6 +29,8 @@ float panSpeed = 180.f, tiltSpeed = 180.f; // per sec
 float currentPan = targetPan, currentTilt = targetTilt;
 
 unsigned long lastMicros;
+
+ArtNet artNet;
 
 void waitWiFi()
 {
@@ -63,6 +67,8 @@ void setup()
 
     waitWiFi();
 
+    artNet.begin();
+
     Serial.println("Setup completed.");
 
     lastMicros = micros();
@@ -81,6 +87,8 @@ void loop()
     const auto elapsed = now - lastMicros;
     const auto deltaTime = static_cast<float>(elapsed) / 1e6f;
     lastMicros = now;
+
+    artNet.loop();
 
     update(elapsed, deltaTime);
 
