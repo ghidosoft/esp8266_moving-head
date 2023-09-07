@@ -2,7 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <Servo.h>
 
-#include "ArtNet.hpp"
+#include <ArtnetWiFi.h>
 
 #define PAN_PIN D1
 #define TILT_PIN D2
@@ -13,6 +13,10 @@
 #define STATUS_PIN D4
 
 #define WIFI_BLINK_DELAY 200
+
+#define ARTNET_UNIVERSE 0
+#define ARTNET_NET 0
+#define ARTNET_SUBNET 0
 
 #define statusOn() digitalWrite(STATUS_PIN, LOW)
 #define statusOff() digitalWrite(STATUS_PIN, HIGH)
@@ -30,7 +34,18 @@ float currentPan = targetPan, currentTilt = targetTilt;
 
 unsigned long lastMicros;
 
-ArtNet artNet;
+ArtnetWiFiReceiver artnet;
+
+void artnetCallback(const uint8_t* data, const uint16_t size)
+{
+    if (size >= 3)
+    {
+        r = static_cast<float>(data[0]);
+        g = static_cast<float>(data[1]);
+        b = static_cast<float>(data[2]);
+        brightness = static_cast<float>(data[3]) / 255.f;
+    }
+}
 
 void waitWiFi()
 {
@@ -67,7 +82,11 @@ void setup()
 
     waitWiFi();
 
-    artNet.begin();
+    artnet.begin(ARTNET_NET, ARTNET_SUBNET);
+    artnet.subscribe(ARTNET_UNIVERSE, artnetCallback);
+    artnet.shortname("GS Moving Head");
+    artnet.longname("Ghidosoft Moving Head");
+    artnet.nodereport("OK");
 
     Serial.println("Setup completed.");
 
@@ -88,7 +107,7 @@ void loop()
     const auto deltaTime = static_cast<float>(elapsed) / 1e6f;
     lastMicros = now;
 
-    artNet.loop();
+    artnet.parse();
 
     update(elapsed, deltaTime);
 
