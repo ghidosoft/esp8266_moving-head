@@ -14,30 +14,44 @@
 
 #define statusOn() digitalWrite(STATUS_PIN, LOW)
 #define statusOff() digitalWrite(STATUS_PIN, HIGH)
+#define statusBlink(ms) do { statusOn(); delay(ms); statusOff(); delay(ms); } while (0)
 
 Servo panServo;
 Servo tiltServo;
 
-int r = 0, g = 0, b = 0;
+float r = 0.f, g = 0.f, b = 0.f;
 float brightness = 0.f;
-int pan = 90, tilt = 90;
+float targetPan = 0.f, targetTilt = 0.f;
+float panSpeed = 180.f, tiltSpeed = 180.f; // per sec
+
+float currentPan = targetPan, currentTilt = targetTilt;
+
+unsigned long lastMicros;
 
 void waitWiFi()
 {
     if (WiFi.status() != WL_CONNECTED)
     {
+        Serial.print("Waiting for wifi...");
         while (WiFi.status() != WL_CONNECTED)
         {
-            statusOn();
-            delay(WIFI_BLINK_DELAY);
-            statusOff();
-            delay(WIFI_BLINK_DELAY);
+            Serial.print(".");
+            statusBlink(WIFI_BLINK_DELAY);
         }
+        Serial.println(" done.");
+        Serial.print("SSID:\t");
+        Serial.println(WiFi.SSID());
+        Serial.print("IP:\t");
+        Serial.println(WiFi.localIP());
     }
 }
 
 void setup()
 {
+    Serial.begin(115200);
+    Serial.println("Starting up...");
+
+    analogWriteRange(255); // should be the default
     pinMode(R_PIN, OUTPUT);
     pinMode(G_PIN, OUTPUT);
     pinMode(B_PIN, OUTPUT);
@@ -48,13 +62,31 @@ void setup()
     WiFi.mode(WIFI_STA);
 
     waitWiFi();
+
+    Serial.println("Setup completed.");
+
+    lastMicros = micros();
+}
+
+void update(unsigned long us, float deltaTime)
+{
+    // TODO: use speeds
+    currentPan = targetPan;
+    currentTilt = targetTilt;
 }
 
 void loop()
 {
-    panServo.write(pan);
-    tiltServo.write(tilt);
-    analogWrite(R_PIN, static_cast<int>(static_cast<float>(r) * brightness));
-    analogWrite(G_PIN, static_cast<int>(static_cast<float>(g) * brightness));
-    analogWrite(B_PIN, static_cast<int>(static_cast<float>(b) * brightness));
+    const auto now = micros();
+    const auto elapsed = now - lastMicros;
+    const auto deltaTime = static_cast<float>(elapsed) / 1e6f;
+    lastMicros = now;
+
+    update(elapsed, deltaTime);
+
+    panServo.write(static_cast<int>(currentPan));
+    tiltServo.write(static_cast<int>(currentTilt));
+    analogWrite(R_PIN, static_cast<int>(r * brightness));
+    analogWrite(G_PIN, static_cast<int>(g * brightness));
+    analogWrite(B_PIN, static_cast<int>(b * brightness));
 }
