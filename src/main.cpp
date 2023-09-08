@@ -18,6 +18,18 @@
 #define ARTNET_NET 0
 #define ARTNET_SUBNET 0
 
+#define DMX_CHANNEL_BASE 0
+#define DMX_CHANNEL_R 0
+#define DMX_CHANNEL_G 1
+#define DMX_CHANNEL_B 2
+#define DMX_CHANNEL_BRIGHTNESS 3
+#define DMX_CHANNEL_STROBE 4
+#define DMX_CHANNEL_PAN 5
+#define DMX_CHANNEL_TILT 6
+#define DMX_CHANNEL_SPEED 7
+
+#define MAX_SPEED 180.f
+
 #define statusOn() digitalWrite(STATUS_PIN, LOW)
 #define statusOff() digitalWrite(STATUS_PIN, HIGH)
 #define statusBlink(ms) do { statusOn(); delay(ms); statusOff(); delay(ms); } while (0)
@@ -27,10 +39,12 @@ Servo tiltServo;
 
 float r = 0.f, g = 0.f, b = 0.f;
 float brightness = 0.f;
+uint8_t strobe = 0;
 float targetPan = 0.f, targetTilt = 0.f;
-float panSpeed = 180.f, tiltSpeed = 180.f; // per sec
+float panSpeed = 0.f, tiltSpeed = 0.f; // per sec
 
 float currentPan = targetPan, currentTilt = targetTilt;
+int strobeOn = 0;
 
 unsigned long lastMicros;
 
@@ -38,13 +52,22 @@ ArtnetWiFiReceiver artnet;
 
 void artnetCallback(const uint8_t* data, const uint16_t size)
 {
-    if (size >= 3)
-    {
-        r = static_cast<float>(data[0]);
-        g = static_cast<float>(data[1]);
-        b = static_cast<float>(data[2]);
-        brightness = static_cast<float>(data[3]) / 255.f;
-    }
+    if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_R)
+        r = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_R]);
+    if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_G)
+        g = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_G]);
+    if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_B)
+        b = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_B]);
+    if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_BRIGHTNESS)
+        brightness = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_BRIGHTNESS]) / 255.f;
+    if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_STROBE)
+        strobe = data[DMX_CHANNEL_BASE + DMX_CHANNEL_STROBE];
+    if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_PAN)
+        targetPan = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_PAN]) * 180.f / 255.f;
+    if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_TILT)
+        targetTilt = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_TILT]) * 180.f / 255.f;
+    if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_SPEED)
+        panSpeed = tiltSpeed = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_TILT]) * MAX_SPEED / 255.f;
 }
 
 void waitWiFi()
@@ -84,9 +107,9 @@ void setup()
 
     artnet.begin(ARTNET_NET, ARTNET_SUBNET);
     artnet.subscribe(ARTNET_UNIVERSE, artnetCallback);
-    artnet.shortname("GS Moving Head");
-    artnet.longname("Ghidosoft Moving Head");
-    artnet.nodereport("OK");
+    artnet.shortname("LS Moving Head");
+    artnet.longname("Lobster Moving Head");
+    artnet.nodereport("");
 
     Serial.println("Setup completed.");
 
@@ -98,6 +121,8 @@ void update(unsigned long us, float deltaTime)
     // TODO: use speeds
     currentPan = targetPan;
     currentTilt = targetTilt;
+
+    strobeOn = 1; // TODO
 }
 
 void loop()
@@ -113,7 +138,7 @@ void loop()
 
     panServo.write(static_cast<int>(currentPan));
     tiltServo.write(static_cast<int>(currentTilt));
-    analogWrite(R_PIN, static_cast<int>(r * brightness));
-    analogWrite(G_PIN, static_cast<int>(g * brightness));
-    analogWrite(B_PIN, static_cast<int>(b * brightness));
+    analogWrite(R_PIN, static_cast<int>(r * brightness) * strobeOn);
+    analogWrite(G_PIN, static_cast<int>(g * brightness) * strobeOn);
+    analogWrite(B_PIN, static_cast<int>(b * brightness) * strobeOn);
 }
