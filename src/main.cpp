@@ -28,6 +28,9 @@
 #define DMX_CHANNEL_TILT 6
 #define DMX_CHANNEL_SPEED 7
 
+#define STROBE_MIN 0.2f
+#define STROBE_MAX 50.f
+
 #define MAX_SPEED 180.f
 
 #define statusOn() digitalWrite(STATUS_PIN, LOW)
@@ -48,6 +51,8 @@ int strobeOn = 0;
 
 unsigned long lastMicros;
 
+unsigned long currentStrobePeriod;
+
 ArtnetWiFiReceiver artnet;
 
 void artnetCallback(const uint8_t* data, const uint16_t size)
@@ -61,7 +66,11 @@ void artnetCallback(const uint8_t* data, const uint16_t size)
     if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_BRIGHTNESS)
         brightness = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_BRIGHTNESS]) / 255.f;
     if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_STROBE)
+    {
         strobe = data[DMX_CHANNEL_BASE + DMX_CHANNEL_STROBE];
+        const auto x = pow(2.f, (strobe - 10.f) / 235.f) * .5f - .5f;
+        currentStrobePeriod = static_cast<unsigned long>(1000.f / (x * (STROBE_MAX - STROBE_MIN) + STROBE_MIN));
+    }
     if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_PAN)
         targetPan = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_PAN]) * 180.f / 255.f;
     if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_TILT)
@@ -116,13 +125,21 @@ void setup()
     lastMicros = micros();
 }
 
-void update(unsigned long us, float deltaTime)
+void update(unsigned long deltaUs, float deltaTime)
 {
     // TODO: use speeds
     currentPan = targetPan;
     currentTilt = targetTilt;
 
-    strobeOn = 1; // TODO
+    if (strobe < 10)
+        strobeOn = 0;
+    else if (strobe > 245)
+        strobeOn = 1;
+    else
+    {
+        const auto ms = millis();
+        strobeOn = (ms / currentStrobePeriod) & 1;
+    }
 }
 
 void loop()
