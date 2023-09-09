@@ -127,9 +127,15 @@ void setup()
 
 void update(unsigned long deltaUs, float deltaTime)
 {
-    // TODO: use speeds
-    currentPan = targetPan;
-    currentTilt = targetTilt;
+    if (std::abs(targetPan - currentPan) >= panSpeed * deltaTime)
+        currentPan += std::copysign(panSpeed, targetPan - currentPan);
+    else 
+        currentPan = targetPan;
+
+    if (std::abs(targetTilt - currentTilt) >= tiltSpeed * deltaTime)
+        currentTilt += std::copysign(tiltSpeed * deltaTime, targetTilt - currentTilt);
+    else 
+        currentTilt = targetTilt;
 
     if (strobe < 10)
         strobeOn = 0;
