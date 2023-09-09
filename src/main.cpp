@@ -117,7 +117,7 @@ void setup()
     artnet.begin(ARTNET_NET, ARTNET_SUBNET);
     artnet.subscribe(ARTNET_UNIVERSE, artnetCallback);
     artnet.shortname("LS Moving Head");
-    artnet.longname("Lobster Moving Head");
+    artnet.longname("Lobster Mini Moving Head");
     artnet.nodereport("");
 
     Serial.println("Setup completed.");
