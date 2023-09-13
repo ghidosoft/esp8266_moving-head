@@ -76,7 +76,7 @@ void artnetCallback(const uint8_t* data, const uint16_t size)
     if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_TILT)
         targetTilt = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_TILT]) * 180.f / 255.f;
     if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_SPEED)
-        panSpeed = tiltSpeed = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_TILT]) * MAX_SPEED / 255.f;
+        panSpeed = tiltSpeed = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_SPEED]) * MAX_SPEED / 255.f;
 }
 
 void waitWiFi()
