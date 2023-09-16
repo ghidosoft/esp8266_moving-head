@@ -109,6 +109,8 @@ void setup()
     pinMode(STATUS_PIN, OUTPUT);
     panServo.attach(PAN_PIN);
     tiltServo.attach(TILT_PIN);
+    panServo.write(static_cast<int>(currentPan));
+    tiltServo.write(static_cast<int>(currentTilt));
     WiFi.begin();
     WiFi.mode(WIFI_STA);
 
@@ -127,6 +129,8 @@ void setup()
 
 void update(unsigned long deltaUs, float deltaTime)
 {
+    // Serial.printf("%.1f\t%.1f\t%.1f\t%.3f\n", targetPan - currentPan, targetPan, currentPan, panSpeed * deltaTime);
+
     if (std::abs(targetPan - currentPan) >= panSpeed * deltaTime)
         currentPan += std::copysign(panSpeed * deltaTime, targetPan - currentPan);
     else
