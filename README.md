@@ -8,13 +8,15 @@ Watch it in action: https://youtube.com/shorts/YtfIU0vCi1o
 
 3D printed using [this awesome model by Joel Brisson](https://www.thingiverse.com/thing:1912706).
 
-This are the 8 DMX (over ArtNet) channels.
+Those are the 8 DMX (over ArtNet) channels:
 * R, G, B
 * Intensity
 * Strobe
 * Pan
 * Tilt
 * Pan/Tilt speed
+
+You can change the default channel by changing `#define DMX_CHANNEL_BASE <starting-channel>` in `src/main.cpp`.
 
 Developed using PlatformIO, target platform NodeMCU V3 (esp8266).
 
