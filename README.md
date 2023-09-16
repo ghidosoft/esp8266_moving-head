@@ -1,5 +1,21 @@
 # Lobster 🦞 Mini Moving Head
 
+This is a simple ArtNet node application for a 3D printed moving head using NodeMCU V3.
+
+![Moving head photo](docs/IMG_20230916_151608.jpg)
+
+Watch it in action: https://youtube.com/shorts/YtfIU0vCi1o
+
+3D printed using [this awesome model by Joel Brisson](https://www.thingiverse.com/thing:1912706).
+
+This are the 8 DMX (over ArtNet) channels.
+* R, G, B
+* Intensity
+* Strobe
+* Pan
+* Tilt
+* Pan/Tilt speed
+
 Developed using PlatformIO, target platform NodeMCU V3 (esp8266).
 
 Connects using the following pins:
