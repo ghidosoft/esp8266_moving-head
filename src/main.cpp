@@ -1,4 +1,4 @@
-/* This file is part of Lobster Moving Head, Copyright (C) 2023 Andrea Ghidini.
+/* This file is part of Lobster Mini Moving Head, Copyright (C) 2023 Andrea Ghidini.
  *
  * Lobster Mini Moving Head is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
