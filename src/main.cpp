@@ -60,7 +60,7 @@ float r = 0.f, g = 0.f, b = 0.f;
 float brightness = 0.f;
 uint8_t strobe = 0;
 float targetPan = 0.f, targetTilt = 0.f;
-float panSpeed = 0.f, tiltSpeed = 0.f; // per sec
+float panSpeed = MAX_SPEED, tiltSpeed = MAX_SPEED; // per sec
 
 float currentPan = targetPan, currentTilt = targetTilt;
 int strobeOn = 0;
@@ -92,7 +92,7 @@ void artnetCallback(const uint8_t* data, const uint16_t size)
     if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_TILT)
         targetTilt = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_TILT]) * 180.f / 255.f;
     if (size > DMX_CHANNEL_BASE + DMX_CHANNEL_SPEED)
-        panSpeed = tiltSpeed = static_cast<float>(data[DMX_CHANNEL_BASE + DMX_CHANNEL_SPEED]) * MAX_SPEED / 255.f;
+        panSpeed = tiltSpeed = static_cast<float>(255 - data[DMX_CHANNEL_BASE + DMX_CHANNEL_SPEED]) * MAX_SPEED / 255.f;
 }
 
 void waitWiFi()
